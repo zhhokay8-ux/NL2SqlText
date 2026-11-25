@@ -1,0 +1,101 @@
+metadata:
+  #同步任务
+  sync:
+    enabled: true
+    cron: "0 0 2 * * ?"        # 每天凌晨 2 点全量同步
+    incremental-cron: "0 */30 * * * ?"  # 每 30 分钟增量检查
+    batch-size: 50              # 每批 Embedding 文档数量
+
+  #数仓配置 支持多个数仓
+  datasources:
+    - id: dws                   # 数据源唯一标识
+      name: "汇总层数仓"
+      url: jdbc:mysql://dw-host:3306/dws_db
+      username: ${DW_USER}      # 敏感信息走环境变量
+      password: ${DW_PASSWORD}
+      driver: com.mysql.cj.jdbc.Driver
+      layer: DWS                # 数仓分层标识（DWD/DWS/ADS）
+
+    - id: ads
+      name: "应用层数仓"
+      url: jdbc:postgresql://ads-host:5432/ads_db
+      username: ${ADS_USER}
+      password: ${ADS_PASSWORD}
+      driver: org.postgresql.Driver
+      layer: ADS
+
+  #表级配置：补充 DDL 里没有的业务含义
+
+  tables:
+    - datasource-id: dws
+      table-name: dws_order_detail_1d
+      display-name: "订单明细汇总表（按天）"
+      description: "记录每天每笔订单的完整信息，含支付状态、退款标识、买卖双方信息"
+      tags: [ "订单", "销售", "支付", "天粒度" ]
+      enabled: true             # false 时跳过同步
+      # 字段级别补充（只需要补充 DDL 注释不够清晰的字段）
+      columns:
+        - name: order_status
+          business-name: "订单状态"
+          enum-values: # 枚举值映射，解决 status=1 是什么的问题
+            "1": "待付款"
+            "2": "已付款"
+            "3": "已发货"
+            "4": "退款中"
+            "5": "已完成"
+            "6": "已关闭"
+        - name: is_deleted
+          business-name: "软删除标识"
+          description: "0=正常 1=已删除，查询时必须过滤 is_deleted=0"
+          query-constraint: "is_deleted = 0"  # 告诉 Agent 查询时必须加这个条件
+        - name: cost_price
+          business-name: "成本价"
+          sensitive: true       # 敏感字段，Agent 生成 SQL 时禁止查询
+    - datasource-id: dws
+      table-name: dws_user_behavior_1d
+      display-name: "用户行为汇总表（按天）"
+      description: "记录用户每天的浏览、收藏、加购、下单行为数量"
+      tags: [ "用户", "行为", "UV", "PV" ]
+      enabled: true
+    - datasource-id: ads
+      table-name: ads_shop_sales_summary
+      display-name: "店铺销售汇总表"
+      description: "ADS 层的店铺维度销售指标汇总，直接用于报表展示"
+      tags: [ "店铺", "销售额", "GMV", "日报" ]
+      enabled: true
+
+  #指标实例
+  metrics:
+    - name: "客单价"
+      aliases: [ "人均消费", "每单均价", "AOV" ]   # 同义词，提升召回覆盖
+      description: "每笔成交订单的平均金额"
+      formula: "SUM(pay_amount) / COUNT(DISTINCT order_id)"
+      related-tables: [ "dws_order_detail_1d" ]
+      constraints:
+        - "order_status IN (2,3,5)"    # 只统计有效订单
+        - "is_deleted = 0"
+      example-sql: |
+        SELECT SUM(pay_amount) / COUNT(DISTINCT order_id) AS aov
+        FROM dws_order_detail_1d
+        WHERE dt = '${yesterday}' AND order_status IN (2,3,5) AND is_deleted = 0
+        
+    - name: "复购率"
+      aliases: ["回购率", "复购用户占比"]
+      description: "在统计周期内，购买次数大于等于2次的买家占全部买家的比例"
+      formula: "COUNT(DISTINCT CASE WHEN order_cnt >= 2 THEN buyer_id END) / COUNT(DISTINCT buyer_id)"
+      related-tables: ["dws_user_behavior_1d", "dws_order_detail_1d"]
+
+    - name: "GMV"
+      aliases: [ "成交总额", "总销售额", "流水" ]
+      description: "统计周期内所有提交订单的总金额，包含未支付订单（与实收不同）"
+      formula: "SUM(order_amount)"
+      related-tables: [ "dws_order_detail_1d" ]
+      constraints:
+        - "is_deleted = 0"
+
+
+    - name: "实收金额"
+      aliases: [ "实际收入", "净收入", "到账金额" ]
+      description: "买家实际支付的金额，扣除优惠券和退款，与GMV不同"
+      formula: "SUM(pay_amount) - SUM(refund_amount)"
+      related-tables: [ "dws_order_detail_1d" ]

@@ -1,0 +1,41 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: nl2sql-postgres
+    environment:
+      POSTGRES_DB: nl2sql
+      POSTGRES_USER: nl2sql
+      POSTGRES_PASSWORD: nl2sql
+    ports:
+      - "5433:5432"
+    volumes:
+      - nl2sql-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nl2sql -d nl2sql"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.18.8
+    container_name: nl2sql-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - ingest.geoip.downloader.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - nl2sql-es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 40s
+
+volumes:
+  nl2sql-pg-data:
+  nl2sql-es-data:
