@@ -2,16 +2,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.zhh</groupId>
-    <artifactId>oneagent</artifactId>
+    <groupId>com.nl2sql.ai</groupId>
+    <artifactId>nl2sql</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
-    <name>oneAgent</name>
+    <name>nl2sqlText</name>
+    <modules>
+        <module>oneAgent</module>
+    </modules>
     <packaging>pom</packaging>
     <description>
-        oneAgent是一个将自然语言变换成一个可执行SQL的项目。
+        nl2sqlText 是将自然语言编程可执行sql的项目
     </description>
-
 
     <properties>
         <java.version>17</java.version>
@@ -21,7 +23,7 @@
         <okhttp.version>4.12.0</okhttp.version>
         <postgresql.version>42.7.4</postgresql.version>
         <pgvector.version>0.1.6</pgvector.version>
-
+        <redisson.version>4.0.0</redisson.version>
     </properties>
 
     <dependencyManagement>
@@ -77,6 +79,12 @@
                 <artifactId>spring-boot-starter-jdbc</artifactId>
                 <version>${spring-boot.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -99,5 +107,6 @@
             </plugins>
         </pluginManagement>
     </build>
+
 
 </project>
