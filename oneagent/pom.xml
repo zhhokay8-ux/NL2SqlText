@@ -19,6 +19,8 @@
         <hutool-all.version>5.8.37</hutool-all.version>
         <mybatis-plus-spring-boot3-starter.version>3.5.14</mybatis-plus-spring-boot3-starter.version>
         <okhttp.version>4.12.0</okhttp.version>
+        <postgresql.version>42.7.4</postgresql.version>
+        <pgvector.version>0.1.6</pgvector.version>
 
     </properties>
 
@@ -54,6 +56,26 @@
              <artifactId>okhttp</artifactId>
              <version>${okhttp.version}</version>
          </dependency>
+        <!-- PostgreSQL 驱动 -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+        </dependency>
+
+        <!-- pgvector Java 客户端 -->
+        <dependency>
+            <groupId>com.pgvector</groupId>
+            <artifactId>pgvector</artifactId>
+            <version>${pgvector.version}</version>
+        </dependency>
+
+        <!-- Spring Boot JDBC（HikariCP 连接池内置） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+            <version>${spring-boot.version}</version>
+        </dependency>
        </dependencies>
 
     <build>
