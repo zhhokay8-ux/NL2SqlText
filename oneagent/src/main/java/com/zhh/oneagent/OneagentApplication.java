@@ -1,4 +1,4 @@
-package com.zhh.oneagent;
+package java.com.zhh.oneagent;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
