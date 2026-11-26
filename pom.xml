@@ -25,6 +25,8 @@
         <pgvector.version>0.1.6</pgvector.version>
         <redisson.version>4.0.0</redisson.version>
         <druid.version>1.2.28</druid.version>
+        <spring-ai-openai.version>1.0.0-M6</spring-ai-openai.version>
+        <spring-ai-pgvector.version>1.0.0-M6</spring-ai-pgvector.version>
     </properties>
 
     <dependencyManagement>
@@ -95,17 +97,19 @@
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-openai-spring-boot-starter</artifactId>
+                <version>${spring-ai-openai.version}</version>
             </dependency>
             <!-- pgvector VectorStore -->
             <dependency>
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-pgvector-store-spring-boot-starter</artifactId>
+                <version>${spring-ai-pgvector.version}</version>
             </dependency>
-            <!-- JPA（用于 MetadataSyncRecord） -->
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-data-jpa</artifactId>
-            </dependency>
+<!--            &lt;!&ndash; JPA（用于 MetadataSyncRecord） &ndash;&gt;-->
+<!--            <dependency>-->
+<!--                <groupId>org.springframework.boot</groupId>-->
+<!--                <artifactId>spring-boot-starter-data-jpa</artifactId>-->
+<!--            </dependency>-->
         </dependencies>
     </dependencyManagement>
 
